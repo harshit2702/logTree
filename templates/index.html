@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IoT Sensor Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Add Plotly.js for gauges -->
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+</head>
+<body>
+    <div class="container py-4">
+        <header class="pb-3 mb-4 border-bottom">
+            <h1 class="fs-4">IoT Sensor Dashboard</h1>
+            <button class="btn btn-sm btn-outline-primary float-end" data-bs-toggle="modal" data-bs-target="#settingsModal">
+                <i class="bi bi-gear"></i> Settings
+            </button>
+        </header>
+
+        <!-- Current Readings -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Current Readings</div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Temperature:</strong> <span id="current-temp">--</span></p>
+                                <p><strong>Pressure:</strong> <span id="current-pressure">--</span></p>
+                                <p><strong>Altitude:</strong> <span id="current-altitude">--</span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Last Update:</strong> <span id="last-update">--</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Location</div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Latitude:</strong> <span id="current-lat">--</span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Longitude:</strong> <span id="current-lng">--</span></p>
+                            </div>
+                        </div>
+                        <div id="map" style="height: 150px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gauge Displays -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Temperature Gauge</div>
+                    <div class="card-body">
+                        <div id="gauge-temp" style="height: 250px;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Pressure Gauge</div>
+                    <div class="card-body">
+                        <div id="gauge-pressure" style="height: 250px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gyroscope 3D Visualization -->
+        <div class="card mb-4">
+            <div class="card-header">3D Gyroscope Visualization</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div id="gyroscope-visualization" style="width: 100%; height: 400px;"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">Rotation Rates</div>
+                            <div class="card-body">
+                                <table class="table">
+                                    <tbody>
+                                        <tr>
+                                            <td>X (Roll):</td>
+                                            <td><span id="gyro-x-value">0.00</span> deg/s</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Y (Pitch):</td>
+                                            <td><span id="gyro-y-value">0.00</span> deg/s</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Z (Yaw):</td>
+                                            <td><span id="gyro-z-value">0.00</span> deg/s</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Magnitude:</td>
+                                            <td><span id="gyro-magnitude">0.00</span> deg/s</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Temperature Chart -->
+        <div class="card mb-4" id="temperature-card">
+            <div class="card-header">Temperature History</div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="temp-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pressure Chart -->
+        <div class="card mb-4" id="pressure-card">
+            <div class="card-header">Pressure History</div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="pressure-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Acceleration Chart -->
+        <div class="card mb-4" id="acceleration-card">
+            <div class="card-header">Acceleration</div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="accel-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gyroscope Chart -->
+        <div class="card mb-4" id="gyroscope-card">
+            <div class="card-header">Gyroscope</div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="gyro-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Altitude Chart -->
+        <div class="card mb-4" id="altitude-card">
+            <div class="card-header">Altitude History</div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="altitude-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="settingsModalLabel">Dashboard Settings</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="refresh-rate" class="form-label">Refresh Rate (seconds)</label>
+                        <input type="number" class="form-control" id="refresh-rate" min="1" value="5">
+                    </div>
+                    <div class="mb-3">
+                        <label for="time-range" class="form-label">Time Range (hours)</label>
+                        <select class="form-select" id="time-range">
+                            <option value="1">Last Hour</option>
+                            <option value="6">Last 6 Hours</option>
+                            <option value="12">Last 12 Hours</option>
+                            <option value="24">Last 24 Hours</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Charts to Display</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="chart-temp" checked>
+                            <label class="form-check-label" for="chart-temp">Temperature</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="chart-pressure" checked>
+                            <label class="form-check-label" for="chart-pressure">Pressure</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="chart-accel" checked>
+                            <label class="form-check-label" for="chart-accel">Acceleration</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="chart-gyro" checked>
+                            <label class="form-check-label" for="chart-gyro">Gyroscope</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="chart-location" checked>
+                            <label class="form-check-label" for="chart-location">Location</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="save-settings">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+    <script src="{{ url_for('static', filename='gyro-visualization.js') }}"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

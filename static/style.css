@@ -1,0 +1,44 @@
+body {
+    background-color: #f4f6f9;
+}
+
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 1rem;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+#map {
+    background-color: #e9ecef;
+    border-radius: 0.25rem;
+}
+
+.chart-container {
+    position: relative;
+    height: 250px;
+    width: 100%;
+}
+
+/* Gyroscope visualization styling */
+#gyroscope-visualization {
+    border-radius: 0.25rem;
+    overflow: hidden;
+}
+
+#gyroscope-visualization canvas {
+    display: block;
+}
+
+.table td {
+    padding: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    #gyroscope-visualization {
+        height: 300px;
+    }
+}
