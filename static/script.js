@@ -18,9 +18,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize gyroscope visualization
     initGyroscopeVisualization();
     
-    // Initialize map
-    initMap();
-    
     // Set up event handlers
     document.getElementById('save-settings').addEventListener('click', saveSettings);
     
@@ -28,48 +25,6 @@ document.addEventListener('DOMContentLoaded', function() {
     updateDashboard();
 });
 
-// Initialize map
-function initMap() {
-    // Initialize the Leaflet map
-    map = L.map('map').setView([0, 0], 2);
-    
-    // Add OpenStreetMap tiles
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
-    
-    // Add marker for current location
-    marker = L.marker([0, 0]).addTo(map);
-    circle = L.circle([0, 0], {radius: 0}).addTo(map);
-    
-    // Variable to track mode (point or area)
-    let areaMode = false;
-    
-    // Handle toggle button click
-    document.getElementById('toggle-map-mode').addEventListener('click', function() {
-        areaMode = !areaMode;
-        if (areaMode) {
-            this.innerHTML = '<i class="bi bi-geo-alt"></i> Point Mode';
-            circle.setStyle({opacity: 0.8, fillOpacity: 0.3});
-        } else {
-            this.innerHTML = '<i class="bi bi-circle"></i> Area Mode';
-            circle.setStyle({opacity: 0, fillOpacity: 0});
-        }
-    });
-}
-
-// Function to update map with new coordinates
-function updateMap(lat, lng, accuracy = 1000) {
-    if (map && marker && circle) {
-        // Update marker and circle
-        marker.setLatLng([lat, lng]);
-        circle.setLatLng([lat, lng]);
-        circle.setRadius(accuracy);
-        
-        // Center map on new location
-        map.setView([lat, lng], 15);
-    }
-}
 
 // Initialize gauge displays using Plotly.js
 function initGauges() {

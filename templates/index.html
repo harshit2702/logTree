@@ -7,13 +7,16 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Leaflet CSS and JS for map -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <!-- Chart.js for graphs -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js/dist/chart.umd.min.js"></script>
+
     <style>
         .gauge-container {
             width: 200px;
@@ -52,16 +55,14 @@
             <!-- Location Section with Map -->
             <div class="col-md-3">
                 <div class="card" id="location-card">
-                    <div class="card-header">
-                        Location
-                        <div class="float-end">
-                            <button id="toggle-map-mode" class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-circle"></i> Area Mode
-                            </button>
-                        </div>
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>Location</span>
+                        <button id="toggle-map-mode" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-circle"></i> Area Mode
+                        </button>
                     </div>
                     <div class="card-body">
-                        <div class="row">
+                        <div class="row mb-3">
                             <div class="col-md-6">
                                 <p><strong>Latitude:</strong> <span id="current-lat">--</span></p>
                             </div>
@@ -69,25 +70,7 @@
                                 <p><strong>Longitude:</strong> <span id="current-lng">--</span></p>
                             </div>
                         </div>
-<div class="card" id="location-card">
-  <div class="card-header d-flex justify-content-between align-items-center">
-    <span>Location</span>
-    <button id="toggle-map-mode" class="btn btn-sm btn-outline-primary">
-      <i class="bi bi-circle"></i> Area Mode
-    </button>
-  </div>
-  <div class="card-body">
-    <div class="row mb-3">
-      <div class="col-md-6">
-        <p><strong>Latitude:</strong> <span id="current-lat">--</span></p>
-      </div>
-      <div class="col-md-6">
-        <p><strong>Longitude:</strong> <span id="current-lng">--</span></p>
-      </div>
-    </div>
-    <div id="map"></div>
-  </div>
-</div>
+                        <div id="map"></div>
                     </div>
                 </div>
             </div>

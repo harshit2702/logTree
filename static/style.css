@@ -15,6 +15,8 @@ body {
 #map {
     background-color: #e9ecef;
     border-radius: 0.25rem;
+    height: 250px;
+    width: 100%;
 }
 
 .chart-container {
@@ -41,12 +43,6 @@ body {
     #gyroscope-visualization {
         height: 300px;
     }
-}
-#map {
-    background-color: #e9ecef;
-    border-radius: 0.25rem;
-    height: 300px;
-    width: 100%;
 }
 
 #toggle-map-mode {
