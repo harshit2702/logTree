@@ -42,3 +42,17 @@ body {
         height: 300px;
     }
 }
+#map {
+    background-color: #e9ecef;
+    border-radius: 0.25rem;
+    height: 300px;
+    width: 100%;
+}
+
+#toggle-map-mode {
+    font-size: 0.875rem;
+}
+
+.leaflet-control-attribution {
+    font-size: 9px;
+}

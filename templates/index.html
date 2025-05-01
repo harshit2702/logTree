@@ -3,44 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IoT Sensor Dashboard</title>
+    <title>Sensor Dashboard</title>
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Leaflet CSS and JS for map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <!-- Add Plotly.js for gauges -->
-    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <!-- Chart.js for graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .gauge-container {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+        }
+        #gyroscope-container {
+            width: 300px;
+            height: 300px;
+            margin: 0 auto;
+        }
+    </style>
 </head>
 <body>
-    <div class="container py-4">
-        <header class="pb-3 mb-4 border-bottom">
-            <h1 class="fs-4">IoT Sensor Dashboard</h1>
-            <button class="btn btn-sm btn-outline-primary float-end" data-bs-toggle="modal" data-bs-target="#settingsModal">
-                <i class="bi bi-gear"></i> Settings
-            </button>
-        </header>
+    <div class="container-fluid">
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <h2 class="text-center">Sensor Dashboard</h2>
+            </div>
+        </div>
 
-        <!-- Current Readings -->
-        <div class="row mb-4">
-            <div class="col-md-6">
+        <div class="row mt-3">
+            <!-- Current Readings Section -->
+            <div class="col-md-3">
                 <div class="card">
                     <div class="card-header">Current Readings</div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <p><strong>Temperature:</strong> <span id="current-temp">--</span></p>
-                                <p><strong>Pressure:</strong> <span id="current-pressure">--</span></p>
-                                <p><strong>Altitude:</strong> <span id="current-altitude">--</span></p>
-                            </div>
-                            <div class="col-md-6">
-                                <p><strong>Last Update:</strong> <span id="last-update">--</span></p>
-                            </div>
-                        </div>
+                        <p><strong>Temperature:</strong> <span id="current-temp">--</span></p>
+                        <p><strong>Pressure:</strong> <span id="current-pressure">--</span></p>
+                        <p><strong>Altitude:</strong> <span id="current-altitude">--</span></p>
+                        <p><strong>Last Update:</strong> <span id="last-update">--</span></p>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">Location</div>
+
+            <!-- Location Section with Map -->
+            <div class="col-md-3">
+                <div class="card" id="location-card">
+                    <div class="card-header">
+                        Location
+                        <div class="float-end">
+                            <button id="toggle-map-mode" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-circle"></i> Area Mode
+                            </button>
+                        </div>
+                    </div>
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6">
@@ -50,64 +67,94 @@
                                 <p><strong>Longitude:</strong> <span id="current-lng">--</span></p>
                             </div>
                         </div>
-                        <div id="map" style="height: 150px;"></div>
+                        <div id="map" style="height: 300px;"></div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Gauge Displays -->
-        <div class="row mb-4">
-            <div class="col-md-6">
+            <!-- Temperature Gauge -->
+            <div class="col-md-3">
                 <div class="card">
                     <div class="card-header">Temperature Gauge</div>
                     <div class="card-body">
-                        <div id="gauge-temp" style="height: 250px;"></div>
+                        <div class="gauge-container">
+                            <canvas id="temp-gauge"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
+
+            <!-- Pressure Gauge -->
+            <div class="col-md-3">
                 <div class="card">
                     <div class="card-header">Pressure Gauge</div>
                     <div class="card-body">
-                        <div id="gauge-pressure" style="height: 250px;"></div>
+                        <div class="gauge-container">
+                            <canvas id="pressure-gauge"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Gyroscope 3D Visualization -->
-        <div class="card mb-4">
-            <div class="card-header">3D Gyroscope Visualization</div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-8">
-                        <div id="gyroscope-visualization" style="width: 100%; height: 400px;"></div>
+        <div class="row mt-3">
+            <!-- 3D Gyroscope Visualization -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">3D Gyroscope Visualization</div>
+                    <div class="card-body">
+                        <div id="gyroscope-container"></div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="card">
-                            <div class="card-header">Rotation Rates</div>
-                            <div class="card-body">
-                                <table class="table">
-                                    <tbody>
-                                        <tr>
-                                            <td>X (Roll):</td>
-                                            <td><span id="gyro-x-value">0.00</span> deg/s</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Y (Pitch):</td>
-                                            <td><span id="gyro-y-value">0.00</span> deg/s</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Z (Yaw):</td>
-                                            <td><span id="gyro-z-value">0.00</span> deg/s</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Magnitude:</td>
-                                            <td><span id="gyro-magnitude">0.00</span> deg/s</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                </div>
+            </div>
+
+            <!-- Rotation Rates -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Rotation Rates</div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <p><strong>X (Roll):</strong></p>
+                            </div>
+                            <div class="col-md-3">
+                                <p id="gyro-x">0.00</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p>deg/s</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <p><strong>Y (Pitch):</strong></p>
+                            </div>
+                            <div class="col-md-3">
+                                <p id="gyro-y">0.00</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p>deg/s</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <p><strong>Z (Yaw):</strong></p>
+                            </div>
+                            <div class="col-md-3">
+                                <p id="gyro-z">0.00</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p>deg/s</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <p><strong>Magnitude:</strong></p>
+                            </div>
+                            <div class="col-md-3">
+                                <p id="gyro-mag">0.00</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p>deg/s</p>
                             </div>
                         </div>
                     </div>
@@ -115,52 +162,56 @@
             </div>
         </div>
 
-        <!-- Temperature Chart -->
-        <div class="card mb-4" id="temperature-card">
-            <div class="card-header">Temperature History</div>
-            <div class="card-body">
-                <div class="chart-container">
-                    <canvas id="temp-chart"></canvas>
+        <div class="row mt-3">
+            <!-- Temperature History -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">Temperature History</div>
+                    <div class="card-body">
+                        <canvas id="temp-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pressure History -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">Pressure History</div>
+                    <div class="card-body">
+                        <canvas id="pressure-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Altitude History -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">Altitude History</div>
+                    <div class="card-body">
+                        <canvas id="altitude-chart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Pressure Chart -->
-        <div class="card mb-4" id="pressure-card">
-            <div class="card-header">Pressure History</div>
-            <div class="card-body">
-                <div class="chart-container">
-                    <canvas id="pressure-chart"></canvas>
+        <div class="row mt-3">
+            <!-- Acceleration -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Acceleration</div>
+                    <div class="card-body">
+                        <canvas id="acceleration-chart"></canvas>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Acceleration Chart -->
-        <div class="card mb-4" id="acceleration-card">
-            <div class="card-header">Acceleration</div>
-            <div class="card-body">
-                <div class="chart-container">
-                    <canvas id="accel-chart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Gyroscope Chart -->
-        <div class="card mb-4" id="gyroscope-card">
-            <div class="card-header">Gyroscope</div>
-            <div class="card-body">
-                <div class="chart-container">
-                    <canvas id="gyro-chart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Altitude Chart -->
-        <div class="card mb-4" id="altitude-card">
-            <div class="card-header">Altitude History</div>
-            <div class="card-body">
-                <div class="chart-container">
-                    <canvas id="altitude-chart"></canvas>
+            <!-- Gyroscope -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Gyroscope</div>
+                    <div class="card-body">
+                        <canvas id="gyroscope-chart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -177,38 +228,42 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="refresh-rate" class="form-label">Refresh Rate (seconds)</label>
-                        <input type="number" class="form-control" id="refresh-rate" min="1" value="5">
+                        <input type="number" class="form-control" id="refresh-rate" min="1" max="60" value="5">
                     </div>
                     <div class="mb-3">
-                        <label for="time-range" class="form-label">Time Range (hours)</label>
-                        <select class="form-select" id="time-range">
-                            <option value="1">Last Hour</option>
-                            <option value="6">Last 6 Hours</option>
-                            <option value="12">Last 12 Hours</option>
-                            <option value="24">Last 24 Hours</option>
-                        </select>
+                        <label class="form-label">Time Range (hours)</label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="time-range" id="time-1" value="1" checked>
+                            <label class="btn btn-outline-primary" for="time-1">Last Hour</label>
+                            <input type="radio" class="btn-check" name="time-range" id="time-6" value="6">
+                            <label class="btn btn-outline-primary" for="time-6">Last 6 Hours</label>
+                            <input type="radio" class="btn-check" name="time-range" id="time-12" value="12">
+                            <label class="btn btn-outline-primary" for="time-12">Last 12 Hours</label>
+                            <input type="radio" class="btn-check" name="time-range" id="time-24" value="24">
+                            <label class="btn btn-outline-primary" for="time-24">Last 24 Hours</label>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Charts to Display</label>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="chart-temp" checked>
-                            <label class="form-check-label" for="chart-temp">Temperature</label>
+                            <input class="form-check-input" type="checkbox" id="show-temp" checked>
+                            <label class="form-check-label" for="show-temp">Temperature</label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="chart-pressure" checked>
-                            <label class="form-check-label" for="chart-pressure">Pressure</label>
+                            <input class="form-check-input" type="checkbox" id="show-pressure" checked>
+                            <label class="form-check-label" for="show-pressure">Pressure</label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="chart-accel" checked>
-                            <label class="form-check-label" for="chart-accel">Acceleration</label>
+                            <input class="form-check-input" type="checkbox" id="show-accel" checked>
+                            <label class="form-check-label" for="show-accel">Acceleration</label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="chart-gyro" checked>
-                            <label class="form-check-label" for="chart-gyro">Gyroscope</label>
+                            <input class="form-check-input" type="checkbox" id="show-gyro" checked>
+                            <label class="form-check-label" for="show-gyro">Gyroscope</label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="chart-location" checked>
-                            <label class="form-check-label" for="chart-location">Location</label>
+                            <input class="form-check-input" type="checkbox" id="show-location" checked>
+                            <label class="form-check-label" for="show-location">Location</label>
                         </div>
                     </div>
                 </div>
@@ -220,12 +275,427 @@
         </div>
     </div>
 
-    <!-- JavaScript -->
+    <!-- Bootstrap JS and Popper.js -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Three.js for 3D visualization -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
-    <script src="{{ url_for('static', filename='gyro-visualization.js') }}"></script>
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    
+    <script>
+        // Initialize map
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize the Leaflet map
+            var map = L.map('map').setView([0, 0], 2);
+            
+            // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
+            // Add marker for current location
+            var marker = L.marker([0, 0]).addTo(map);
+            var circle = L.circle([0, 0], {radius: 0}).addTo(map);
+            
+            // Variable to track mode (point or area)
+            var areaMode = false;
+            
+            // Handle toggle button click
+            document.getElementById('toggle-map-mode').addEventListener('click', function() {
+                areaMode = !areaMode;
+                if (areaMode) {
+                    this.innerHTML = '<i class="bi bi-geo-alt"></i> Point Mode';
+                    circle.setStyle({opacity: 0.8, fillOpacity: 0.3});
+                } else {
+                    this.innerHTML = '<i class="bi bi-circle"></i> Area Mode';
+                    circle.setStyle({opacity: 0, fillOpacity: 0});
+                }
+            });
+            
+            // Simulate receiving location data
+            function updateLocation(lat, lng, accuracy) {
+                document.getElementById('current-lat').textContent = lat.toFixed(6);
+                document.getElementById('current-lng').textContent = lng.toFixed(6);
+                
+                // Update marker and circle
+                marker.setLatLng([lat, lng]);
+                circle.setLatLng([lat, lng]);
+                circle.setRadius(accuracy);
+                
+                // Center map on new location
+                map.setView([lat, lng], 15);
+            }
+            
+            // Simulate geolocation
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    updateLocation(
+                        position.coords.latitude, 
+                        position.coords.longitude,
+                        position.coords.accuracy
+                    );
+                }, function(error) {
+                    console.error("Error getting location:", error);
+                    // Use default location if geolocation fails
+                    updateLocation(51.505, -0.09, 1000);
+                });
+            } else {
+                // Use default location if geolocation not supported
+                updateLocation(51.505, -0.09, 1000);
+            }
+            
+            // Setup temperature chart
+            var tempCtx = document.getElementById('temp-chart').getContext('2d');
+            var tempChart = new Chart(tempCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Temperature (°C)',
+                        data: [],
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 2,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+            
+            // Setup pressure chart
+            var pressureCtx = document.getElementById('pressure-chart').getContext('2d');
+            var pressureChart = new Chart(pressureCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Pressure (hPa)',
+                        data: [],
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 2,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+            
+            // Setup altitude chart
+            var altitudeCtx = document.getElementById('altitude-chart').getContext('2d');
+            var altitudeChart = new Chart(altitudeCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Altitude (m)',
+                        data: [],
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 2,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+            
+            // Setup acceleration chart
+            var accelCtx = document.getElementById('acceleration-chart').getContext('2d');
+            var accelChart = new Chart(accelCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'X',
+                            data: [],
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Y',
+                            data: [],
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Z',
+                            data: [],
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1,
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+            
+            // Setup gyroscope chart
+            var gyroCtx = document.getElementById('gyroscope-chart').getContext('2d');
+            var gyroChart = new Chart(gyroCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'X (Roll)',
+                            data: [],
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Y (Pitch)',
+                            data: [],
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Z (Yaw)',
+                            data: [],
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1,
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+            
+            // Setup temperature gauge
+            var tempGaugeCtx = document.getElementById('temp-gauge').getContext('2d');
+            var tempGauge = new Chart(tempGaugeCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Temperature', 'Remaining'],
+                    datasets: [{
+                        data: [0, 100],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.8)',
+                            'rgba(220, 220, 220, 0.5)'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    circumference: 180,
+                    rotation: -90,
+                    cutout: '75%',
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: false
+                        }
+                    }
+                }
+            });
+            
+            // Setup pressure gauge
+            var pressureGaugeCtx = document.getElementById('pressure-gauge').getContext('2d');
+            var pressureGauge = new Chart(pressureGaugeCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pressure', 'Remaining'],
+                    datasets: [{
+                        data: [0, 100],
+                        backgroundColor: [
+                            'rgba(54, 162, 235, 0.8)',
+                            'rgba(220, 220, 220, 0.5)'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    circumference: 180,
+                    rotation: -90,
+                    cutout: '75%',
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: false
+                        }
+                    }
+                }
+            });
+            
+            // Setup 3D gyroscope visualization
+            var scene = new THREE.Scene();
+            var camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+            var renderer = new THREE.WebGLRenderer();
+            renderer.setSize(300, 300);
+            document.getElementById('gyroscope-container').appendChild(renderer.domElement);
+            
+            // Create a cube to represent the gyroscope
+            var geometry = new THREE.BoxGeometry(1, 0.2, 1.5);
+            var material = new THREE.MeshBasicMaterial({
+                color: 0x00ff00,
+                wireframe: true
+            });
+            var cube = new THREE.Mesh(geometry, material);
+            scene.add(cube);
+            
+            // Add axes helper
+            var axesHelper = new THREE.AxesHelper(2);
+            scene.add(axesHelper);
+            
+            camera.position.z = 2;
+            
+            // Animation function for the gyroscope
+            function animate() {
+                requestAnimationFrame(animate);
+                renderer.render(scene, camera);
+            }
+            animate();
+            
+            // Function to simulate sensor data
+            function simulateSensorData() {
+                // Get current time for labels
+                var now = new Date();
+                var timeString = now.getHours() + ':' + 
+                                (now.getMinutes() < 10 ? '0' + now.getMinutes() : now.getMinutes()) + ':' + 
+                                (now.getSeconds() < 10 ? '0' + now.getSeconds() : now.getSeconds());
+                
+                // Simulate temperature (20-30°C)
+                var temp = 20 + Math.random() * 10;
+                document.getElementById('current-temp').textContent = temp.toFixed(2) + ' °C';
+                
+                // Simulate pressure (980-1020 hPa)
+                var pressure = 980 + Math.random() * 40;
+                document.getElementById('current-pressure').textContent = pressure.toFixed(2) + ' hPa';
+                
+                // Simulate altitude (based on pressure)
+                var altitude = 44330 * (1 - Math.pow(pressure / 1013.25, 0.1903));
+                document.getElementById('current-altitude').textContent = altitude.toFixed(2) + ' m';
+                
+                // Update last update time
+                document.getElementById('last-update').textContent = timeString;
+                
+                // Simulate gyroscope values
+                var gyroX = (Math.random() - 0.5) * 10;
+                var gyroY = (Math.random() - 0.5) * 10;
+                var gyroZ = (Math.random() - 0.5) * 10;
+                var gyroMag = Math.sqrt(gyroX * gyroX + gyroY * gyroY + gyroZ * gyroZ);
+                
+                document.getElementById('gyro-x').textContent = gyroX.toFixed(2);
+                document.getElementById('gyro-y').textContent = gyroY.toFixed(2);
+                document.getElementById('gyro-z').textContent = gyroZ.toFixed(2);
+                document.getElementById('gyro-mag').textContent = gyroMag.toFixed(2);
+                
+                // Update 3D cube rotation
+                cube.rotation.x += gyroX * 0.01;
+                cube.rotation.y += gyroY * 0.01;
+                cube.rotation.z += gyroZ * 0.01;
+                
+                // Update charts
+                // For simplicity, we'll keep only the last 10 points
+                if (tempChart.data.labels.length > 10) {
+                    tempChart.data.labels.shift();
+                    tempChart.data.datasets[0].data.shift();
+                }
+                tempChart.data.labels.push(timeString);
+                tempChart.data.datasets[0].data.push(temp);
+                tempChart.update();
+                
+                if (pressureChart.data.labels.length > 10) {
+                    pressureChart.data.labels.shift();
+                    pressureChart.data.datasets[0].data.shift();
+                }
+                pressureChart.data.labels.push(timeString);
+                pressureChart.data.datasets[0].data.push(pressure);
+                pressureChart.update();
+                
+                if (altitudeChart.data.labels.length > 10) {
+                    altitudeChart.data.labels.shift();
+                    altitudeChart.data.datasets[0].data.shift();
+                }
+                altitudeChart.data.labels.push(timeString);
+                altitudeChart.data.datasets[0].data.push(altitude);
+                altitudeChart.update();
+                
+                // Update acceleration chart (simulate accelerometer data)
+                var accelX = (Math.random() - 0.5) * 4;
+                var accelY = (Math.random() - 0.5) * 4;
+                var accelZ = 9.8 + (Math.random() - 0.5);
+                
+                if (accelChart.data.labels.length > 10) {
+                    accelChart.data.labels.shift();
+                    accelChart.data.datasets[0].data.shift();
+                    accelChart.data.datasets[1].data.shift();
+                    accelChart.data.datasets[2].data.shift();
+                }
+                accelChart.data.labels.push(timeString);
+                accelChart.data.datasets[0].data.push(accelX);
+                accelChart.data.datasets[1].data.push(accelY);
+                accelChart.data.datasets[2].data.push(accelZ);
+                accelChart.update();
+                
+                // Update gyroscope chart
+                if (gyroChart.data.labels.length > 10) {
+                    gyroChart.data.labels.shift();
+                    gyroChart.data.datasets[0].data.shift();
+                    gyroChart.data.datasets[1].data.shift();
+                    gyroChart.data.datasets[2].data.shift();
+                }
+                gyroChart.data.labels.push(timeString);
+                gyroChart.data.datasets[0].data.push(gyroX);
+                gyroChart.data.datasets[1].data.push(gyroY);
+                gyroChart.data.datasets[2].data.push(gyroZ);
+                gyroChart.update();
+                
+                // Update gauges (normalize values to 0-100 range)
+                var tempNormalized = ((temp - 20) / 10) * 100;
+                tempGauge.data.datasets[0].data = [tempNormalized, 100 - tempNormalized];
+                tempGauge.update();
+                
+                var pressureNormalized = ((pressure - 980) / 40) * 100;
+                pressureGauge.data.datasets[0].data = [pressureNormalized, 100 - pressureNormalized];
+                pressureGauge.update();
+            }
+            
+            // Update data initially and then every 5 seconds
+            simulateSensorData();
+            setInterval(simulateSensorData, 5000);
+        });
+    </script>
+<script src="{{ url_for('static', filename='map.js') }}"></script>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
 </body>
 </html>

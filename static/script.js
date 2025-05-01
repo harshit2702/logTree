@@ -2,6 +2,7 @@
 let tempChart, pressureChart, accelChart, gyroChart, altitudeChart;
 let dashboardConfig = {};
 let updateTimer;
+let map, marker, circle; // Variables for map components
 
 // Initialize the dashboard
 document.addEventListener('DOMContentLoaded', function() {
@@ -17,12 +18,58 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize gyroscope visualization
     initGyroscopeVisualization();
     
+    // Initialize map
+    initMap();
+    
     // Set up event handlers
     document.getElementById('save-settings').addEventListener('click', saveSettings);
     
     // First data load
     updateDashboard();
 });
+
+// Initialize map
+function initMap() {
+    // Initialize the Leaflet map
+    map = L.map('map').setView([0, 0], 2);
+    
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    
+    // Add marker for current location
+    marker = L.marker([0, 0]).addTo(map);
+    circle = L.circle([0, 0], {radius: 0}).addTo(map);
+    
+    // Variable to track mode (point or area)
+    let areaMode = false;
+    
+    // Handle toggle button click
+    document.getElementById('toggle-map-mode').addEventListener('click', function() {
+        areaMode = !areaMode;
+        if (areaMode) {
+            this.innerHTML = '<i class="bi bi-geo-alt"></i> Point Mode';
+            circle.setStyle({opacity: 0.8, fillOpacity: 0.3});
+        } else {
+            this.innerHTML = '<i class="bi bi-circle"></i> Area Mode';
+            circle.setStyle({opacity: 0, fillOpacity: 0});
+        }
+    });
+}
+
+// Function to update map with new coordinates
+function updateMap(lat, lng, accuracy = 1000) {
+    if (map && marker && circle) {
+        // Update marker and circle
+        marker.setLatLng([lat, lng]);
+        circle.setLatLng([lat, lng]);
+        circle.setRadius(accuracy);
+        
+        // Center map on new location
+        map.setView([lat, lng], 15);
+    }
+}
 
 // Initialize gauge displays using Plotly.js
 function initGauges() {
@@ -323,8 +370,19 @@ function updateDashboard() {
                 document.getElementById('current-temp').textContent = `${data.temp.toFixed(2)} °C`;
                 document.getElementById('current-pressure').textContent = `${data.pressure.toFixed(2)} hPa`;
                 document.getElementById('current-altitude').textContent = `${data.location.altitude.toFixed(2)} m`;
-                document.getElementById('current-lat').textContent = data.location.latitude.toFixed(6);
-                document.getElementById('current-lng').textContent = data.location.longitude.toFixed(6);
+                
+                // Update location display and map
+                if (data.location) {
+                    document.getElementById('current-lat').textContent = 
+                        data.location.latitude ? data.location.latitude.toFixed(6) : '--';
+                    document.getElementById('current-lng').textContent = 
+                        data.location.longitude ? data.location.longitude.toFixed(6) : '--';
+                    
+                    // Update map if valid coordinates
+                    if (data.location.latitude && data.location.longitude) {
+                        updateMap(data.location.latitude, data.location.longitude, data.location.accuracy || 1000);
+                    }
+                }
                 
                 // Update gauge displays
                 Plotly.update('gauge-temp', {'value': data.temp});
@@ -394,4 +452,16 @@ function updateChartData() {
             }
         })
         .catch(error => console.error('Error fetching historical data:', error));
+}
+
+// Function to initialize 3D gyroscope visualization
+function initGyroscopeVisualization() {
+    // Implementation for gyroscope visualization
+    console.log("Gyroscope visualization initialized");
+}
+
+// Function to update gyroscope visualization
+function updateGyroscopeVisualization(x, y, z) {
+    // Implementation for updating gyroscope visualization
+    console.log(`Gyroscope values updated: x=${x}, y=${y}, z=${z}`);
 }
