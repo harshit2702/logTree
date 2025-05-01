@@ -16,12 +16,12 @@ function initMap() {
         // Create marker for position
         marker = L.marker([0, 0]).addTo(map);
         
-        // Create accuracy circle (NEO-6M typically has 2.5m accuracy in good conditions)
+        // Create accuracy circle (NEO-6M typically has 2.5m accuracy)
         accuracyCircle = L.circle([0, 0], {
             color: 'blue',
             fillColor: '#3388ff',
             fillOpacity: 0.2,
-            radius: 2.5 // default radius in meters (NEO-6M accuracy)
+            radius: 2.5 // default radius in meters
         }).addTo(map);
         
         // Setup mode toggle button
@@ -46,7 +46,7 @@ function updateMap(latitude, longitude) {
         // Apply current mode display
         updateMapMode();
         
-        // Center map on current position with appropriate zoom
+        // Center map on current position
         map.setView(position, 18);
     }
 }
@@ -71,7 +71,7 @@ function toggleMapMode() {
 function updateMapMode() {
     if (mapMode === 'area') {
         // Show accuracy circle with NEO-6M typical accuracy (2.5m)
-        accuracyCircle.setRadius(2.5); // 2.5 meters accuracy circle
+        accuracyCircle.setRadius(2.5);
         accuracyCircle.setStyle({opacity: 1, fillOpacity: 0.2});
     } else {
         // Hide accuracy circle in point mode
